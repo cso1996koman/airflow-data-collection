@@ -9,7 +9,7 @@ from airflow.models import Variable
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2015, 1, 1),
-    'retries': 1,
+    'retries': 5,
     'retry_delay': timedelta(minutes=5), 
 }
 
@@ -28,5 +28,8 @@ for dag in dags:
 
 # Register each DAG in the dags list
 for dag in dags:
-    dag()
+    if isinstance(dag, DAG):
+        globals()[dag.dag_id] = dag
+    else :
+        logging.error(f"Encountered non-DAG object of type: {type(dag)}")
     

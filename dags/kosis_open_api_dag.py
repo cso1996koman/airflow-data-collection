@@ -37,70 +37,66 @@ class KosisOpenApiDag:
                 prev_task_instance : TaskInstance = None
                 cur_task_instance : TaskInstance = None
                 request_url : str = None
-                if context['task_instance'].previous_ti is None:
+                if context['task_instance'].previous_ti is None or context['task_instance'].previous_ti.xcom_pull(task_ids='open_api_request') is None:
                     prev_task_instance = context['task_instance']
                     cur_task_instance = context['task_instance']
                     request_url = dag_config_param['uri']    
                 else:
                     prev_task_instance = context['task_instance'].previous_ti                                       
-                    cur_task_instance = context['task_instance']
-                    prev_task_instance_xcom_dto : KosisOpenApiRequestTaskXcomDto = KosisOpenApiRequestTaskXcomDto.from_dict(prev_task_instance.xcom_pull(task_ids='open_api_request'))
+                    cur_task_instance = context['task_instance']                    
+                    logging.info(f"prev_task_instance: {prev_task_instance}")
+                    logging.info(f"cur_task_instance: {cur_task_instance}")
+                    pre_task_instance_xcom = prev_task_instance.xcom_pull(task_ids='open_api_request')
+                    logging.info(f"pre_task_instance_xcom: {pre_task_instance_xcom}")
+                    prev_task_instance_xcom_dto : KosisOpenApiRequestTaskXcomDto = KosisOpenApiRequestTaskXcomDto.from_dict(pre_task_instance_xcom.to_dict())
                     request_url = prev_task_instance_xcom_dto.request_rul
                 
 
                 url_obj : KosisUrl = UrlObjectFactory.createKosisUrl(request_url)                
                 open_api_helper_obj = OpenApiHelper()
-                if(url_obj.objL1 != "All"):
+                if(url_obj.objL1 != "All" and url_obj.objL1 != ""):
                     # objL1 : 1+2+3+4+5+...n+
                     # objL1 unit param : 1+, 2+, 3+, 4+, 5+ ,..., n+
-                    open_api_helper_obj.assert_valid_unit_param(url_obj.objL1)
                     obj_unit_params : List[str] = open_api_helper_obj.get_multi_unit_param(url_obj.objL1)
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
-                elif(url_obj.objL2 != "All"):
+                elif(url_obj.objL2 != "All" and url_obj.objL2 != ""):
                     # objL2 = 1+2+3+4+5+...n+
                     # objL2 unit param : 1+, 2+, 3+, 4+, 5+ ,..., n+
-                    open_api_helper_obj.assert_valid_unit_param(url_obj.objL2)
                     obj_unit_params : List[str] = open_api_helper_obj.get_multi_unit_param(url_obj.objL2)
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
-                elif(url_obj.objL3 != "All"):
+                elif(url_obj.objL3 != "All" and url_obj.objL3 != ""):
                     # objL3 = 1+2+3+4+5+...n+
                     # objL3 unit param : 1+, 2+, 3+, 4+, 5+ ,..., n+
-                    open_api_helper_obj.assert_valid_unit_param(url_obj.objL3)
                     obj_unit_params : List[str] = open_api_helper_obj.get_multi_unit_param(url_obj.objL3)
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
-                elif(url_obj.objL4 != "All"):
+                elif(url_obj.objL4 != "All" and url_obj.objL4 != ""):
                     # objL4 = 1+2+3+4+5+...n+
                     # objL4 unit param : 1+, 2+, 3+, 4+, 5+ ,..., n+
-                    open_api_helper_obj.assert_valid_unit_param(url_obj.objL4)
                     obj_unit_params : List[str] = open_api_helper_obj.get_multi_unit_param(url_obj.objL4)
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
-                elif(url_obj.objL5 != "All"):
+                elif(url_obj.objL5 != "All" and url_obj.objL5 != ""):
                     # objL5 = 1+2+3+4+5+...n+
                     # objL5 unit param : 1+, 2+, 3+, 4+, 5+ ,..., n+
-                    open_api_helper_obj.assert_valid_unit_param(url_obj.objL5)
                     obj_unit_params : List[str] = open_api_helper_obj.get_multi_unit_param(url_obj.objL5)
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
-                elif(url_obj.objL6 != "All"):
+                elif(url_obj.objL6 != "All" and url_obj.objL6 != ""):
                     # objL6 = 1+2+3+4+5+...n+
                     # objL6 unit param : 1+, 2+, 3+, 4+, 5+ ,..., n+
-                    open_api_helper_obj.assert_valid_unit_param(url_obj.objL6)
                     obj_unit_params : List[str] = open_api_helper_obj.get_multi_unit_param(url_obj.objL6)
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
-                elif(url_obj.objL7 != "All"):
+                elif(url_obj.objL7 != "All" and url_obj.objL7 != ""):
                     # objL7 = 1+2+3+4+5+...n+
                     # objL7 unit param : 1+, 2+, 3+, 4+, 5+ ,..., n+
-                    open_api_helper_obj.assert_valid_unit_param(url_obj.objL7)
                     obj_unit_params : List[str] = open_api_helper_obj.get_multi_unit_param(url_obj.objL7)
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
-                elif(url_obj.objL8 != "All"):
+                elif(url_obj.objL8 != "All" and url_obj.objL8 != ""):
                     # objL8 = 1+2+3+4+5+...n+
                     # objL8 unit param : 1+, 2+, 3+, 4+, 5+ ,..., n+
-                    open_api_helper_obj.assert_valid_unit_param(url_obj.objL8)
                     obj_unit_params : List[str] = open_api_helper_obj.get_multi_unit_param(url_obj.objL8)
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
                 else:
                     response = open_api_helper_obj.get_response(url_obj)
-                cur_task_instance_xcom_dto = KosisOpenApiRequestTaskXcomDto(response_json = response)                                
+                cur_task_instance_xcom_dto = KosisOpenApiRequestTaskXcomDto(response_json=response)                                
                                 
                 prdSe = url_obj.prdSe
                 if prdSe == PRDSEENUM.YEAR:
@@ -132,14 +128,14 @@ class KosisOpenApiDag:
                         start_prd_de += relativedelta(months=3)
                     url_obj.startPrdDe = start_prd_de.strftime('%Y%m')
                     url_obj.endPrdDe = end_prd_de.strftime('%Y%m')
-                cur_task_instance_xcom_dto.request_rul = url_obj.getFullUrl()
+                cur_task_instance_xcom_dto.request_rul = url_obj.get_full_url()
                 cur_task_instance.xcom_push(key='open_api_request', value=cur_task_instance_xcom_dto.to_dict())
+                return cur_task_instance_xcom_dto
             @task
-            def openapi_csv_save():
-                context = get_current_context()
-                kosis_open_api_task_xcom_dto : KosisOpenApiRequestTaskXcomDto = context['task_instance'].xcom_pull(task_ids='open_api_request')
+            def openapi_csv_save(task_instance_xcom_dto : KosisOpenApiRequestTaskXcomDto):
+
                 csv_manager : CsvManager = CsvManager()                
-                csv_manager.save_csv(json = kosis_open_api_task_xcom_dto.reponse_json, csv_path = '/tmp/response.csv')
+                csv_manager.save_csv(json = task_instance_xcom_dto.response_json, csv_path = '/tmp/response.csv')
             @task
             def openapi_upload_to_hdfs():
                 file_path = '/tmp/response.csv'
@@ -153,9 +149,9 @@ class KosisOpenApiDag:
                     logging.error(f"Failed to upload file to HDFS: {e}")
                     raise
             
-            openapi_request_task = open_api_request()
-            openapi_csv_save_task = openapi_csv_save()
+            xcom_dto = open_api_request()
+            openapi_csv_save_task = openapi_csv_save(xcom_dto)
             openapi_upload_to_hdfs_task = openapi_upload_to_hdfs()
                     
-            openapi_request_task >> openapi_csv_save_task >> openapi_upload_to_hdfs_task
-        return kosis_open_api_dag
+            xcom_dto >> openapi_csv_save_task >> openapi_upload_to_hdfs_task
+        return kosis_open_api_dag()

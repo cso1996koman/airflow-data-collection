@@ -41,7 +41,7 @@ class WeatherAdministrationOpenApiDag:
                 weatheradministration_open_api_task_xcom_dto.hdfs_file_path = hdfs_file_path
                 return weatheradministration_open_api_task_xcom_dto            
             open_api_request>>open_api_csv_save>>open_api_hdfs_save                
-            return weatheradministration_open_api_dag
+            return weatheradministration_open_api_dag()
         
         
         

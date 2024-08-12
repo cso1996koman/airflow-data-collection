@@ -46,7 +46,7 @@ class OpenApiHelper:
             print(f"Error fetching data: {response.status_code}")
             return {}
     
-    def assert_valid_unit_param(unit_param: str):
+    def assert_valid_unit_param(self, unit_param: str):
         """
         주어진 단위 파라미터가 '1+2+3+...n+' 형태인지 확인합니다.
         """

@@ -1,3 +1,4 @@
+import logging
 import re
 from urllib.parse import urlparse, urlunparse
 from kosis_url import KosisUrl
@@ -7,6 +8,7 @@ class UrlObjectFactory:
     
     @staticmethod
     def createKosisUrl(fullUrl : str) -> KosisUrl:
+        logging.info(f"fullUrl: {fullUrl}")
         baseUrl = UrlObjectFactory.extractKosisBaseUrl(fullUrl)
         apikey = UrlObjectFactory.extractParameter(fullUrl, r'apikey=[^&]*')
         orgId = UrlObjectFactory.extractParameter(fullUrl, r'orgId=[^&]*')
@@ -25,6 +27,7 @@ class UrlObjectFactory:
         prdSe = UrlObjectFactory.extractParameter(fullUrl, r'prdSe=[^&]*')
         startPrdDe = UrlObjectFactory.extractParameter(fullUrl, r'startPrdDe=[^&]*')
         endPrdDe = UrlObjectFactory.extractParameter(fullUrl, r'endPrdDe=[^&]*')
+        logging.info(f"baseUrl: {baseUrl}, apikey: {apikey}, orgId: {orgId}, tblId: {tblId}, itmId: {itmId}, objL1: {objL1}, objL2: {objL2}, objL3: {objL3}, objL4: {objL4}, objL5: {objL5}, objL6: {objL6}, objL7: {objL7}, objL8: {objL8}, format: {format}, jsonVD: {jsonVD}, prdSe: {prdSe}, startPrdDe: {startPrdDe}, endPrdDe: {endPrdDe}")
         return KosisUrl(baseUrl, apikey, itmId, objL1, objL2, objL3, objL4, objL5, objL6, objL7, objL8, format, jsonVD, prdSe, startPrdDe, endPrdDe, orgId, tblId)
     @staticmethod  
     def createWeatherAdministrationUrl(fullUrl : str) -> WeatherAdministrationUrl:

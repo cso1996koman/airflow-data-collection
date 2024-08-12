@@ -21,7 +21,7 @@ class KosisUrl:
     endPrdDe : str
     orgId : str
     tblId : str
-    def getFullUrl(self) -> str:
+    def get_full_url(self) -> str:
         url = (
                 f"{self.baseUrl}&apiKey={self.apiKey}&itmId={self.itmId}&objL1={self.objL1}"
                 f"&objL2={self.objL2}&objL3={self.objL3}&objL4={self.objL4}&objL5={self.objL5}"
@@ -35,4 +35,5 @@ class PRDSEENUM(Enum):
     YEAR = 'Y'
     MONTH = 'M'
     QUARTER = 'Q'
+    
     

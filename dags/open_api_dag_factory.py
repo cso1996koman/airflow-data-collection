@@ -53,21 +53,26 @@ class OpenApiDagFactory:
             weatheradministration_urls.append(UrlObjectFactory.createWeatherAdministrationUrl(weatheradministrataion_api_admin_dvo.uri))        
         Dags : List[DAG] = []
         for index, kosis_url in enumerate(kosis_urls):
+            logging.info(f"kosis_url: {kosis_url}") 
             open_api_kosis_dag_param_dto : OpenApiKosisDagParamDto = open_api_kosis_dag_param_dtos[index]
             dag_id = f'{open_api_kosis_dag_param_dto.remove_except_alphanumericcharacter_dashe_dot_underscore(open_api_kosis_dag_param_dto.tb_code)}_{open_api_kosis_dag_param_dto.remove_except_alphanumericcharacter_dashe_dot_underscore(open_api_kosis_dag_param_dto.src_nm)}_{open_api_kosis_dag_param_dto.remove_except_alphanumericcharacter_dashe_dot_underscore(open_api_kosis_dag_param_dto.tb_nm)}'        
             schedule_interval :timedelta = timedelta(days=1)
-            if(kosis_url.prdSe == PRDSEENUM.YEAR):
+            if(kosis_url.prdSe == PRDSEENUM.YEAR.value):
                 schedule_interval = timedelta(days=365)
-            elif(kosis_url.prdSe == PRDSEENUM.MONTH):
+            elif(kosis_url.prdSe == PRDSEENUM.MONTH.value):
                 schedule_interval = timedelta(days=30)
-            elif(kosis_url.prdSe == PRDSEENUM.QUARTER):
-                schedule_interval = timedelta(days=120)            
+            elif(kosis_url.prdSe == PRDSEENUM.QUARTER.value):
+                schedule_interval = timedelta(days=120)
+            else:
+                logging.error(f"prdSe: {kosis_url.prdSe}")
+                continue
             start_date = datetime(2015, 1, 1, tzinfo=pytz.UTC)            
             dag_function_obj = OpenApiDagFactory.dag_generator(open_api_kosis_dag_param_dto.to_dict(),
                                                                dag_id,
                                                                schedule_interval,
                                                                start_date,
                                                                _default_args)
+            
             Dags.append(dag_function_obj)
         for open_api_weatheradministration_dag_param_dto in open_api_weatheradministration_dag_param_dtos:
             dag_id = f'{open_api_weatheradministration_dag_param_dto.remove_except_alphanumericcharacter_dashe_dot_underscore(open_api_weatheradministration_dag_param_dto.tb_code)}_{open_api_weatheradministration_dag_param_dto.remove_except_alphanumericcharacter_dashe_dot_underscore(open_api_weatheradministration_dag_param_dto.src_nm)}_{open_api_weatheradministration_dag_param_dto.remove_except_alphanumericcharacter_dashe_dot_underscore(open_api_weatheradministration_dag_param_dto.tb_nm)}'
@@ -88,8 +93,10 @@ class OpenApiDagFactory:
                       start_date : datetime,
                       default_args : dict) -> DAG:
         new_dag : DAG = None
+        logging.info(f"src_nm: {dag_config_param['src_nm']}")
         if(dag_config_param['src_nm'] == DATACOLLECTIONSOURCENAME.KOSIS.value):
             new_dag = KosisOpenApiDag.create_kosis_open_api_dag(dag_config_param, dag_id, schedule_interval, start_date, default_args)
+            logging.info(f"new_dag: {new_dag}")
         elif(dag_config_param['src_nm'] == DATACOLLECTIONSOURCENAME.WEATHERADMINISTRATION.value):
             new_dag = WeatherAdministrationOpenApiDag.create_weatheradministration_open_api_dag(dag_config_param, dag_id, schedule_interval, start_date, default_args)
         elif(dag_config_param['src_nm'] == DATACOLLECTIONSOURCENAME.PANDAS.value):
@@ -100,7 +107,8 @@ class OpenApiDagFactory:
             pass
         elif(dag_config_param['src_nm'] == DATACOLLECTIONSOURCENAME.LOGISTICSINFOCENTER.value):
             pass
-        
+        else:
+            assert False, "src_nm is not valid"
         return new_dag
     
 
