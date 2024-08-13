@@ -5,7 +5,7 @@ from api_admin_dvo import ApiAdminDvo
 
 class ApiAdminDao:
     def __init__(self, mysql_conn_id):
-        self.mysql_hook = MySqlHook(mysql_conn_id=mysql_conn_id, schema='load_admin_db')
+        self.mysql_hook = MySqlHook(mysql_conn_id=mysql_conn_id)
         self.connection = self.mysql_hook.get_conn()
         self.cursor = self.connection.cursor()
     def selectBySrcNm(self, src_nm) -> List[ApiAdminDvo]:

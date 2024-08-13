@@ -1,6 +1,7 @@
+import logging
 import requests
 from typing import List, Dict
-
+from pandas import DataFrame
 class OpenApiHelper:
     
     def __init__(self):
@@ -19,21 +20,18 @@ class OpenApiHelper:
         """
         여러 단위 파라미터를 사용하여 API 요청을 보내고, 그 응답을 합쳐서 반환합니다.
         """
-        combined_response = {}
+        merged_dataframe_responses : DataFrame = None
         for param in unit_params:
             # URL 객체의 단위 파라미터를 현재 단위 파라미터로 설정
             url_obj.unit_param = param
             # API 요청 보내기
             response = requests.get(url_obj.get_full_url())
             if response.status_code == 200:
-                data = response.json()
-                # 응답 데이터를 합치기
-                combined_response.update(data)
+                merged_dataframe_responses = DataFrame(response.json()) if merged_dataframe_responses is None else merged_dataframe_responses.append(DataFrame(response.json()))    
             else:
                 # 오류 처리
                 print(f"Error fetching data for param {param}: {response.status_code}")
-        return combined_response
-        
+        return merged_dataframe_responses.to_dict()    
     def get_response(self, url_obj) -> Dict:
         """
         단일 API 요청을 보내고, 그 응답을 반환합니다.

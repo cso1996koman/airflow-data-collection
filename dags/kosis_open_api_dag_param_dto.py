@@ -18,7 +18,7 @@ class OpenApiKosisDagParamDto:
             "tb_nm": self.tb_nm,
             "uri": self.uri,            
             "dir_path": self.dir_path,
-            "api_keys": self.api_keys.__str__()
+            "api_keys": self.api_keys[0]
         }
     def remove_except_alphanumericcharacter_dashe_dot_underscore(self, param_str : str) -> str:
         return re.sub(r'[^a-zA-Z0-9-_\.]', '', param_str)

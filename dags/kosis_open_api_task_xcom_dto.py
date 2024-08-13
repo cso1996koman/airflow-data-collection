@@ -22,7 +22,8 @@ class KosisOpenApiRequestTaskXcomDto:
             "csv_file_path": self.csv_file_path,
             "hdfs_file_path": self.hdfs_file_path
         }
-    def from_dict(self, dict):
+    @staticmethod
+    def from_dict(dict):
         return KosisOpenApiRequestTaskXcomDto(request_rul = dict['request_rul'],
                                               response_json = dict['response_json'],
                                               csv_file_path = dict['csv_file_path'],
