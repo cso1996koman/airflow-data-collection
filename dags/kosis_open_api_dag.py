@@ -31,27 +31,46 @@ class KosisOpenApiDag:
                     start_date=start_date,
                     default_args=default_args)
         def kosis_open_api_dag() -> DAG:
+
             @task
             def open_api_request():
                 context = get_current_context()
                 prev_task_instance : TaskInstance = None
                 cur_task_instance : TaskInstance = None
                 request_url : str = None
-                if context['task_instance'].get_previous_ti() is None or context['task_instance'].get_previous_ti().xcom_pull(task_ids='open_api_request') is None:
+                if context['task_instance'].get_previous_ti() is None:
                     prev_task_instance = context['task_instance']
                     cur_task_instance = context['task_instance']
                     request_url = dag_config_param['uri']
+                    kosis_url_obj : KosisUrl = UrlObjectFactory.createKosisUrl(request_url)
+                    if kosis_url_obj.prdSe == PRDSEENUM.YEAR.value:
+                        kosis_url_obj.startPrdDe = start_date.strftime('%Y')
+                        kosis_url_obj.endPrdDe = (start_date + timedelta(days=365)).strftime('%Y')
+                        assert kosis_url_obj.startPrdDe is not "2015", "init start date year must be 2015"
+                        assert kosis_url_obj.endPrdDe is not "2016", "init end date year must be 2016"
+                    elif kosis_url_obj.prdSe == PRDSEENUM.MONTH.value:
+                        kosis_url_obj.startPrdDe = start_date.strftime('%Y%m')
+                        kosis_url_obj.endPrdDe = (start_date + timedelta(days=30)).strftime('%Y%m')
+                        assert kosis_url_obj.startPrdDe is not "201501", "init start date year,month must be 201501"
+                        assert kosis_url_obj.endPrdDe is not "201502", "init end date year,month must be 201502"
+                    elif kosis_url_obj.prdSe == PRDSEENUM.QUARTER.value:
+                        kosis_url_obj.startPrdDe = start_date.strftime('%Y%m')
+                        kosis_url_obj.endPrdDe = (start_date + timedelta(days=120)).strftime('%Y%m')
+                        assert kosis_url_obj.startPrdDe is not "201501", "init start date year,month must be 201501"
+                        assert kosis_url_obj.endPrdDe is not "201504", "init end date year,month must be 201504"
+                    else: 
+                        assert False, "prdSe is not valid"
+                    request_url = kosis_url_obj.get_full_url()
                 else:
                     prev_task_instance = context['task_instance'].get_previous_ti()
-                    cur_task_instance = context['task_instance']
-                    logging.info(f"prev_task_instance: {prev_task_instance}")
-                    logging.info(f"cur_task_instance: {cur_task_instance}")
-                    pre_task_instance_xcom = prev_task_instance.xcom_pull(task_ids='open_api_request')
-                    logging.info(f"pre_task_instance_xcom: {pre_task_instance_xcom}")
-                    prev_task_instance_xcom_dto : KosisOpenApiRequestTaskXcomDto = KosisOpenApiRequestTaskXcomDto.from_dict(pre_task_instance_xcom.to_dict())
-                    request_url = prev_task_instance_xcom_dto.request_rul
+                    cur_task_instance = context['task_instance']                    
+                    assert prev_task_instance is not None, "prev_task_instance is None"                    
+                    pre_task_instance_xcom = prev_task_instance.xcom_pull(key ='open_api_request')
+                    assert pre_task_instance_xcom is not None, "pre_task_instance_xcom is None"
+                    prev_task_instance_xcom_dto : KosisOpenApiRequestTaskXcomDto = KosisOpenApiRequestTaskXcomDto.from_dict(pre_task_instance_xcom)
+                    request_url = prev_task_instance_xcom_dto.request_url
                 
-                url_obj : KosisUrl = UrlObjectFactory.createKosisUrl(request_url)                
+                url_obj : KosisUrl = UrlObjectFactory.createKosisUrl(request_url)
                 url_obj.apiKey = dag_config_param['api_keys']
                 open_api_helper_obj = OpenApiHelper()
                 if(url_obj.objL1 != "All" and url_obj.objL1 != ""):
@@ -95,50 +114,56 @@ class KosisOpenApiDag:
                     obj_unit_params : List[str] = open_api_helper_obj.get_multi_unit_param(url_obj.objL8)
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
                 else:
-                    response = open_api_helper_obj.get_response(url_obj)
-                cur_task_instance_xcom_dto = KosisOpenApiRequestTaskXcomDto(response_json=response)                                
-                                
+                    response = open_api_helper_obj.get_response(url_obj.get_full_url())
+                cur_task_instance_xcom_dto = KosisOpenApiRequestTaskXcomDto(response_json=response, request_url=url_obj.get_full_url())                                
                 prdSe = url_obj.prdSe
                 if prdSe == PRDSEENUM.YEAR.value:
                     start_prd_de = datetime.strptime(url_obj.startPrdDe, '%Y').replace(tzinfo=pytz.UTC)
+                    start_prd_de_year = start_prd_de.year
                     end_prd_de = datetime.strptime(url_obj.endPrdDe, '%Y').replace(tzinfo=pytz.UTC)
-                    if start_prd_de >= end_prd_de:
+                    end_prd_de_year = end_prd_de.year
+                    if start_prd_de_year + 1 >= end_prd_de_year:
                         end_prd_de += relativedelta(years=1)
                     else:
                         start_prd_de += relativedelta(years=1)
                     url_obj.startPrdDe = start_prd_de.strftime('%Y')
-                    url_obj.endPrdDe = end_prd_de.strftime('%Y')
-                
+                    url_obj.endPrdDe = end_prd_de.strftime('%Y')                
                 elif prdSe == PRDSEENUM.MONTH.value:
                     start_prd_de = datetime.strptime(url_obj.startPrdDe, '%Y%m').replace(tzinfo=pytz.UTC)
+                    start_prd_de_month = start_prd_de.month
                     end_prd_de = datetime.strptime(url_obj.endPrdDe, '%Y%m').replace(tzinfo=pytz.UTC)
-                    if start_prd_de >= end_prd_de:
+                    end_prd_de_month = end_prd_de.month
+                    if start_prd_de_month + 1 >= end_prd_de_month:
                         end_prd_de += relativedelta(months=1)
                     else:
                         start_prd_de += relativedelta(months=1)
                     url_obj.startPrdDe = start_prd_de.strftime('%Y%m')
-                    url_obj.endPrdDe = end_prd_de.strftime('%Y%m')
-                
+                    url_obj.endPrdDe = end_prd_de.strftime('%Y%m')                
                 elif prdSe == PRDSEENUM.QUARTER.value:
                     start_prd_de = datetime.strptime(url_obj.startPrdDe, '%Y%m').replace(tzinfo=pytz.UTC)
+                    start_prd_de_month = start_prd_de.month
                     end_prd_de = datetime.strptime(url_obj.endPrdDe, '%Y%m').replace(tzinfo=pytz.UTC)
-                    if start_prd_de >= end_prd_de:
+                    end_prd_de_month = end_prd_de.month
+                    if start_prd_de_month + 3 >= end_prd_de_month:
                         end_prd_de += relativedelta(months=3)
                     else:
                         start_prd_de += relativedelta(months=3)
                     url_obj.startPrdDe = start_prd_de.strftime('%Y%m')
                     url_obj.endPrdDe = end_prd_de.strftime('%Y%m')
-                cur_task_instance_xcom_dto.request_rul = url_obj.get_full_url()
+                else:
+                    assert False, "prdSe is not valid"
+                cur_task_instance_xcom_dto.request_url = url_obj.get_full_url()
                 cur_task_instance.xcom_push(key='open_api_request', value=cur_task_instance_xcom_dto.to_dict())
             @task
-            def openapi_csv_save():
-                task_instance = get_current_context()['ti']
-                task_instance_xcom : dict = task_instance.xcom_pull(task_ids='open_api_request')
-                if task_instance_xcom is None:
-                    logging.error(f"task_instance_xcom is None")
-                task_instance_xcom_dto : KosisOpenApiRequestTaskXcomDto = KosisOpenApiRequestTaskXcomDto.from_dict(task_instance_xcom)
-                csv_manager : CsvManager = CsvManager()                
-                csv_manager.save_csv(json = task_instance_xcom_dto.response_json, csv_path = '/tmp/response.csv')
+            def openapi_csv_save():            
+                cur_task_instance = get_current_context()['task_instance']
+                assert cur_task_instance is not None
+                cur_task_instance_xcom : dict = cur_task_instance.xcom_pull(key='open_api_request')
+                assert cur_task_instance_xcom is not None
+                cur_task_instance_xcom_dto : KosisOpenApiRequestTaskXcomDto = KosisOpenApiRequestTaskXcomDto.from_dict(cur_task_instance_xcom)
+                csv_manager : CsvManager = CsvManager()         
+                dag_dir_path : str = dag_config_param['dir_path'].replace('TIMESTAMP', datetime.now().strftime('%Y%m%d'))        
+                csv_manager.save_csv(json_data = cur_task_instance_xcom_dto.response_json, csv_path = dag_dir_path)
             @task
             def openapi_upload_to_hdfs():
                 file_path = '/tmp/response.csv'

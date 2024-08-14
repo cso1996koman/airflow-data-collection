@@ -20,23 +20,26 @@ class OpenApiHelper:
         """
         여러 단위 파라미터를 사용하여 API 요청을 보내고, 그 응답을 합쳐서 반환합니다.
         """
-        merged_dataframe_responses : DataFrame = None
+        merged_json_responses : dict = None
         for param in unit_params:
             # URL 객체의 단위 파라미터를 현재 단위 파라미터로 설정
             url_obj.unit_param = param
             # API 요청 보내기
             response = requests.get(url_obj.get_full_url())
             if response.status_code == 200:
-                merged_dataframe_responses = DataFrame(response.json()) if merged_dataframe_responses is None else merged_dataframe_responses.append(DataFrame(response.json()))    
+                if merged_json_responses is None:
+                    merged_json_responses = response.json()
+                else:
+                    merged_json_responses.update(response.json())
             else:
                 # 오류 처리
                 print(f"Error fetching data for param {param}: {response.status_code}")
-        return merged_dataframe_responses.to_dict()    
-    def get_response(self, url_obj) -> Dict:
+        return merged_json_responses
+    def get_response(self, url_str) -> Dict:
         """
         단일 API 요청을 보내고, 그 응답을 반환합니다.
         """
-        response = requests.get(url_obj.get_full_url())
+        response = requests.get(url_str)
         if response.status_code == 200:
             return response.json()
         else:
