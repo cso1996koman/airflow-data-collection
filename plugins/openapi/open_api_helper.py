@@ -1,7 +1,5 @@
-import logging
 import requests
 from typing import List, Dict
-from pandas import DataFrame
 class OpenApiHelper:
     
     def __init__(self):

@@ -1,4 +1,5 @@
 import csv
+import os
 from typing import Dict, List, Union
 
 class CsvManager:
@@ -10,6 +11,13 @@ class CsvManager:
         :param json_data: JSON 데이터 (Dict 또는 List[Dict] 형태)
         :param csv_path: 저장할 CSV 파일 경로
         """
+        # 디렉토리 경로 추출
+        directory = os.path.dirname(csv_path)
+        
+        # 디렉토리가 존재하지 않으면 생성
+        if not os.path.exists(directory):
+            os.makedirs(directory, mode=0o755, exist_ok=True)
+        
         # JSON 데이터를 CSV로 변환하여 저장
         try:
             with open(csv_path, mode='w', newline='', encoding='utf-8') as csv_file:

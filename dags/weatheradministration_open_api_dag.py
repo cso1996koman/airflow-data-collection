@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.providers.apache.hdfs.hooks.webhdfs import WebHDFSHook
 from airflow import DAG
-from open_api_helper import OpenApiHelper
-from url_object_factory import UrlObjectFactory
-from weatheradministration_open_api_dag_param_dto import WeatherAdministrationOpenApiDagParamDto
-from weatheradministration_open_api_task_xcom_dto import WeatherAdministrataionOpenApiTaskXcomDto
+from openapi.open_api_helper import OpenApiHelper
+from openapi.url_object_factory import UrlObjectFactory
+from weatheradministration.weatheradministration_open_api_dag_param_dto import WeatherAdministrationOpenApiDagParamDto
+from weatheradministration.weatheradministration_open_api_task_xcom_dto import WeatherAdministrataionOpenApiTaskXcomDto
 
 class WeatherAdministrationOpenApiDag:
     @staticmethod

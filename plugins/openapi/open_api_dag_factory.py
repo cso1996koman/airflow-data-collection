@@ -3,16 +3,16 @@ from airflow import DAG
 from datetime import datetime, timedelta
 from datetime import datetime, timedelta
 from kosis_open_api_dag import KosisOpenApiDag
-from data_collection_source_name_enum import DATACOLLECTIONSOURCENAME
-from kosis_url import PRDSEENUM, KosisUrl
-from kosis_open_api_dag_param_dto import OpenApiKosisDagParamDto
-from weatheradministration_open_api_dag_param_dto import WeatherAdministrationOpenApiDagParamDto
-from url_object_factory import UrlObjectFactory
-from api_admin_dvo import ApiAdminDvo
+from common.data_collection_source_name_enum import DATACOLLECTIONSOURCENAME
+from kosis.kosis_url import PRDSEENUM, KosisUrl
+from kosis.kosis_open_api_dag_param_dto import OpenApiKosisDagParamDto
+from weatheradministration.weatheradministration_open_api_dag_param_dto import WeatherAdministrationOpenApiDagParamDto
+from openapi.url_object_factory import UrlObjectFactory
+from db.api_admin_dvo import ApiAdminDvo
 from typing import List
 import pytz
 from weatheradministration_open_api_dag import WeatherAdministrationOpenApiDag
-from weatheradministration_url import WeatherAdministrationUrl
+from weatheradministration.weatheradministration_url import WeatherAdministrationUrl
 
 
 # Configure logging

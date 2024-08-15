@@ -1,7 +1,7 @@
 import logging
 from typing import List
 from airflow.providers.mysql.hooks.mysql import MySqlHook
-from api_admin_dvo import ApiAdminDvo
+from db.api_admin_dvo import ApiAdminDvo
 
 class ApiAdminDao:
     def __init__(self, mysql_conn_id):

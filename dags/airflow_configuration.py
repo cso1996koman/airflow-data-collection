@@ -1,16 +1,20 @@
 from datetime import datetime, timedelta
 import logging
 from typing import List
-from api_admin_dao import ApiAdminDao
-from api_admin_dvo import ApiAdminDvo
-from open_api_dag_factory import OpenApiDagFactory
+from db.api_admin_dao import ApiAdminDao
+from db.api_admin_dvo import ApiAdminDvo
+from openapi.open_api_dag_factory import OpenApiDagFactory
 from airflow import DAG
 from airflow.models import Variable
+from airflow.executors.sequential_executor import SequentialExecutor
+
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2015, 1, 1),
     'retries': 5,
     'retry_delay': timedelta(minutes=5), 
+    'depends_on_past': True,
+    'max_active_runs': 120
 }
 
 api_admin_dao : ApiAdminDao = ApiAdminDao('load_admin_db_mariadb')
