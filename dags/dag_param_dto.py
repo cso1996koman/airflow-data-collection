@@ -1,16 +1,14 @@
 from dataclasses import dataclass
 import re
 from typing import List
-
 @dataclass
-class OpenApiKosisDagParamDto:
+class DagParamDto:
     src_nm : str
     tb_code : str
     tb_nm : str
     uri : str
     dir_path : str
-    api_keys : List[str]
-    
+    api_keys : List[str]    
     def to_dict(self):
         return {
             "src_nm": self.src_nm,

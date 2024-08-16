@@ -3,24 +3,24 @@ from airflow.decorators import dag, task
 from airflow.models import TaskInstance
 from airflow.providers.apache.hdfs.hooks.webhdfs import WebHDFSHook
 from airflow.operators.python import get_current_context
-from common.csv_manager import CsvManager
-from kosis.kosis_open_api_task_xcom_dto import KosisOpenApiRequestTaskXcomDto
+from csv_manager import CsvManager
+from open_api_xcom_dto import OpenApiXcomDto
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.providers.apache.hdfs.hooks.webhdfs import WebHDFSHook
 from airflow.operators.python import get_current_context
 from airflow.models.dagrun import DagRun
-from kosis.kosis_open_api_task_xcom_dto import KosisOpenApiRequestTaskXcomDto
+from open_api_xcom_dto import OpenApiXcomDto
 from airflow import DAG
 import logging
 from typing import List
 from dateutil.relativedelta import relativedelta
 import pytz
-from openapi.url_object_factory import UrlObjectFactory
-from kosis.kosis_url import KosisUrl, PRDSEENUM
-from kosis.kosis_open_api_task_xcom_dto import KosisOpenApiRequestTaskXcomDto
-from openapi.open_api_helper import OpenApiHelper
+from url_object_factory import UrlObjectFactory
+from kosis_url import KosisUrl, PRDSEENUM
+from open_api_xcom_dto import OpenApiXcomDto
+from open_api_helper import OpenApiHelper
 class KosisOpenApiDag:    
     @staticmethod
     def create_kosis_open_api_dag(dag_config_param : dict, dag_id : str, schedule_interval : timedelta, start_date : datetime, default_args : dict) -> DAG:
@@ -63,10 +63,10 @@ class KosisOpenApiDag:
                     prev_task_instance = context['task_instance'].get_previous_ti()
                     cur_task_instance = context['task_instance']                    
                     assert prev_task_instance is not None, "prev_task_instance is None"    
-                    prev_task_instance_xcom_dic : KosisOpenApiRequestTaskXcomDto = prev_task_instance.xcom_pull(key = f"{dag_id}_{prev_task_instance.task_id}_{prev_task_instance.run_id}")
+                    prev_task_instance_xcom_dic : OpenApiXcomDto = prev_task_instance.xcom_pull(key = f"{dag_id}_{prev_task_instance.task_id}_{prev_task_instance.run_id}")
                     assert prev_task_instance_xcom_dic is not None, "cur_task_instance_xcom_dto is None"
-                    prev_task_instance_xcom_dto : KosisOpenApiRequestTaskXcomDto = KosisOpenApiRequestTaskXcomDto.from_dict(prev_task_instance_xcom_dic)
-                    request_url = prev_task_instance_xcom_dto.request_url                
+                    prev_task_instance_xcom_dto : OpenApiXcomDto = OpenApiXcomDto.from_dict(prev_task_instance_xcom_dic)
+                    request_url = prev_task_instance_xcom_dto.next_request_url                
                 url_obj : KosisUrl = UrlObjectFactory.createKosisUrl(request_url)
                 url_obj.apiKey = dag_config_param['api_keys']
                 open_api_helper_obj = OpenApiHelper()
@@ -112,7 +112,7 @@ class KosisOpenApiDag:
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
                 else:
                     response = open_api_helper_obj.get_response(url_obj.get_full_url())
-                cur_task_instance_xcom_dto = KosisOpenApiRequestTaskXcomDto(response_json=response, request_url=url_obj.get_full_url())
+                cur_task_instance_xcom_dto = OpenApiXcomDto(response_json=response, request_url=url_obj.get_full_url())
                 prdSe = url_obj.prdSe
                 if prdSe == PRDSEENUM.YEAR.value:
                     start_prd_de = datetime.strptime(url_obj.startPrdDe, '%Y').replace(tzinfo=pytz.UTC)
@@ -147,11 +147,11 @@ class KosisOpenApiDag:
                 assert open_api_request_task_instance is not None, "open_api_request_task_instance is None"
                 open_api_request_task_instance_xcom_dict : dict = open_api_request_task_instance.xcom_pull(key=f"{dag_id}_open_api_request_{open_api_request_task_instance.run_id}")
                 assert open_api_request_task_instance_xcom_dict is not None
-                open_api_request_task_instance_xcom_dto : KosisOpenApiRequestTaskXcomDto = KosisOpenApiRequestTaskXcomDto.from_dict(open_api_request_task_instance_xcom_dict)
+                open_api_request_task_instance_xcom_dto : OpenApiXcomDto = OpenApiXcomDto.from_dict(open_api_request_task_instance_xcom_dict)
                 csv_manager : CsvManager = CsvManager()         
                 dag_dir_path : str = dag_config_param['dir_path']
                 dag_dir_path = dag_dir_path[1:dag_dir_path.__len__()]
-                request_url_obj = UrlObjectFactory.createKosisUrl(open_api_request_task_instance_xcom_dto.request_url)
+                request_url_obj = UrlObjectFactory.createKosisUrl(open_api_request_task_instance_xcom_dto.next_request_url)
                 from_endPrdDe_ptime = None
                 if request_url_obj.prdSe == PRDSEENUM.YEAR.value:
                     from_endPrdDe_ptime = datetime.strptime(request_url_obj.endPrdDe, '%Y').replace(tzinfo=pytz.UTC)
@@ -165,13 +165,23 @@ class KosisOpenApiDag:
                 else:
                     assert False, "prdSe is not valid"                
                 csv_manager.save_csv(json_data = open_api_request_task_instance_xcom_dto.response_json, csv_path = dag_dir_path)
+                open_api_request_task_instance_xcom_dto.csv_file_path = dag_dir_path
+                open_api_request_task_instance.xcom_push(key=f"{dag_id}_open_api_csv_save_{context['run_id']}", value=open_api_request_task_instance_xcom_dto.to_dict())
             @task
             def openapi_upload_to_hdfs():
-                file_path = '/tmp/response.csv'
+                context = get_current_context()
+                cur_dag_run : DagRun = context['dag_run']
+                open_api_csv_save_task_instance : TaskInstance = cur_dag_run.get_task_instance(task_id='openapi_csv_save')
+                assert open_api_csv_save_task_instance is not None, "open_api_csv_save_task_instance is None"
+                open_api_csv_save_task_instance_xcom_dict : dict = open_api_csv_save_task_instance.xcom_pull(key=f"{dag_id}_open_api_csv_save_{open_api_csv_save_task_instance.run_id}")
+                assert open_api_csv_save_task_instance_xcom_dict is not None
+                open_api_csv_save_task_instance_xcom_dto : OpenApiXcomDto = OpenApiXcomDto.from_dict(open_api_csv_save_task_instance_xcom_dict)                
+                csv_path = open_api_csv_save_task_instance_xcom_dto.csv_file_path
                 try:
                     hdfs_hook = WebHDFSHook(webhdfs_conn_id='local_hdfs')
                     hdfs_client = hdfs_hook.get_conn()
-                    hdfs_client.upload('/test/data/example_data.csv', file_path)
+                    hdfs_csv_path = csv_path
+                    hdfs_client.upload(hdfs_csv_path, csv_path)
                     logging.info("File uploaded to HDFS successfully")
                     # os.remove(file_path)
                 except Exception as e:

@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum
-
 @dataclass
 class KosisUrl:
     baseUrl : str
@@ -29,8 +28,7 @@ class KosisUrl:
                 f"&jsonVD={self.jsonVD}&prdSe={self.prdSe}&startPrdDe={self.startPrdDe}"
                 f"&endPrdDe={self.endPrdDe}&orgId={self.orgId}&tblId={self.tblId}"
             )
-        return url
-    
+        return url    
 class PRDSEENUM(Enum):
     YEAR = 'Y'
     MONTH = 'M'

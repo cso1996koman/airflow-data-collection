@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-
 @dataclass
 class WeatherAdministrationUrl:
     baseUrl : str
@@ -12,7 +11,6 @@ class WeatherAdministrationUrl:
     startDt : str
     endDt : str
     stnIds : str    
-    
     def getFullUrl(self) -> str:
         url = (
                 f"{self.baseUrl}?serviceKey={self.serviceKey}&pageNo={self.pageNo}&numOfRows={self.numOfRows}"
@@ -20,4 +18,3 @@ class WeatherAdministrationUrl:
                 f"&endDt={self.endDt}&stnIds={self.stnIds}"
             )
         return url
-    

@@ -1,11 +1,9 @@
 import logging
 import re
 from urllib.parse import urlparse, urlunparse
-from kosis.kosis_url import KosisUrl
-from weatheradministration.weatheradministration_url import WeatherAdministrationUrl
-
-class UrlObjectFactory:
-    
+from kosis_url import KosisUrl
+from weatheradministration_url import WeatherAdministrationUrl
+class UrlObjectFactory:    
     @staticmethod
     def createKosisUrl(fullUrl : str) -> KosisUrl:
         logging.info(f"fullUrl: {fullUrl}")
