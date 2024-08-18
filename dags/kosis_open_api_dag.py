@@ -44,19 +44,13 @@ class KosisOpenApiDag:
                     if kosis_url_obj.prdSe == PRDSEENUM.YEAR.value:
                         kosis_url_obj.startPrdDe = start_date.strftime('%Y')
                         kosis_url_obj.endPrdDe = (start_date + timedelta(days=365)).strftime('%Y')
-                        assert kosis_url_obj.startPrdDe is not "2015", "init start date year must be 2015"
-                        assert kosis_url_obj.endPrdDe is not "2016", "init end date year must be 2016"
                     elif kosis_url_obj.prdSe == PRDSEENUM.MONTH.value:
                         kosis_url_obj.startPrdDe = start_date.strftime('%Y%m')
                         kosis_url_obj.endPrdDe = (start_date + timedelta(days=30)).strftime('%Y%m')
-                        assert kosis_url_obj.startPrdDe is not "201501", "init start date year,month must be 201501"
-                        assert kosis_url_obj.endPrdDe is not "201502", "init end date year,month must be 201502"
                     elif kosis_url_obj.prdSe == PRDSEENUM.QUARTER.value:
                         kosis_url_obj.startPrdDe = start_date.strftime('%Y%m')
                         kosis_url_obj.endPrdDe = (start_date + timedelta(days=120)).strftime('%Y%m')
-                        assert kosis_url_obj.startPrdDe is not "201501", "init start date year,month must be 201501"
-                        assert kosis_url_obj.endPrdDe is not "201504", "init end date year,month must be 201504"
-                    else: 
+                    else:
                         assert False, "prdSe is not valid"
                     request_url = kosis_url_obj.get_full_url()
                 else:
@@ -112,7 +106,7 @@ class KosisOpenApiDag:
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
                 else:
                     response = open_api_helper_obj.get_response(url_obj.get_full_url())
-                cur_task_instance_xcom_dto = OpenApiXcomDto(response_json=response, request_url=url_obj.get_full_url())
+                cur_task_instance_xcom_dto = OpenApiXcomDto(response_json=response, next_request_url=url_obj.get_full_url())
                 prdSe = url_obj.prdSe
                 if prdSe == PRDSEENUM.YEAR.value:
                     start_prd_de = datetime.strptime(url_obj.startPrdDe, '%Y').replace(tzinfo=pytz.UTC)

@@ -29,4 +29,4 @@ for dag in dags:
     if isinstance(dag, DAG):
         globals()[dag.dag_id] = dag
     else :
-        logging.error(f"Encountered non-DAG object of type: {type(dag)}")
+        assert False, "dag is not instance of DAG"

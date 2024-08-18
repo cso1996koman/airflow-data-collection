@@ -59,7 +59,9 @@ services:
 
   airflow-webserver:
     <<: *airflow-common
-    command: webserver
+    command: bash -c " airflow db reset -y && airflow db init && airflow users create --username choisungouk --firstname choi --lastname sungouk --role Admin --email cso1996ko@gmail.com --password chltjddnr123 &&
+      airflow connections add 'load_admin_db_mariadb' --conn-type 'mysql' --conn-host 'ne5.kr' --conn-schema 'load_admin_db' --conn-login 'neo' --conn-password 'Emsrnfma~~!' --conn-port '7745' &&
+      airflow webserver"
     ports:
       - 8080:8080
     healthcheck:

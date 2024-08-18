@@ -29,6 +29,7 @@ class UrlObjectFactory:
         return KosisUrl(baseUrl, apikey, itmId, objL1, objL2, objL3, objL4, objL5, objL6, objL7, objL8, format, jsonVD, prdSe, startPrdDe, endPrdDe, orgId, tblId)
     @staticmethod  
     def createWeatherAdministrationUrl(fullUrl : str) -> WeatherAdministrationUrl:
+        logging.info(f"fullUrl: {fullUrl}")
         baseUrl = UrlObjectFactory.extractWeatherAdministrationBaseUrl(fullUrl)
         serviceKey = UrlObjectFactory.extractParameter(fullUrl, r'serviceKey=[^&]*')
         pageNo = UrlObjectFactory.extractParameter(fullUrl, r'pageNo=[^&]*')
