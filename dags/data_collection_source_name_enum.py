@@ -1,5 +1,4 @@
 from enum import Enum
-
 class DATACOLLECTIONSOURCENAME(Enum):
     KOSIS = "KOSIS"
     WEATHERADMINISTRATION = "기상청"

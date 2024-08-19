@@ -1,17 +1,10 @@
 from datetime import datetime, timedelta
-from airflow.decorators import dag, task
 from airflow.models import TaskInstance
 from airflow.providers.apache.hdfs.hooks.webhdfs import WebHDFSHook
 from airflow.operators.python import get_current_context
 from csv_manager import CsvManager
-from open_api_xcom_dto import OpenApiXcomDto
-from airflow import DAG
-from datetime import datetime, timedelta
 from airflow.decorators import dag, task
-from airflow.providers.apache.hdfs.hooks.webhdfs import WebHDFSHook
-from airflow.operators.python import get_current_context
 from airflow.models.dagrun import DagRun
-from open_api_xcom_dto import OpenApiXcomDto
 from airflow import DAG
 import logging
 from typing import List
@@ -21,7 +14,7 @@ from url_object_factory import UrlObjectFactory
 from kosis_url import KosisUrl, PRDSEENUM
 from open_api_xcom_dto import OpenApiXcomDto
 from open_api_helper import OpenApiHelper
-class KosisOpenApiDag:    
+class KosisOpenApiDag:
     @staticmethod
     def create_kosis_open_api_dag(dag_config_param : dict, dag_id : str, schedule_interval : timedelta, start_date : datetime, default_args : dict) -> DAG:
         @dag(dag_id=dag_id,
@@ -43,13 +36,13 @@ class KosisOpenApiDag:
                     kosis_url_obj : KosisUrl = UrlObjectFactory.createKosisUrl(request_url)
                     if kosis_url_obj.prdSe == PRDSEENUM.YEAR.value:
                         kosis_url_obj.startPrdDe = start_date.strftime('%Y')
-                        kosis_url_obj.endPrdDe = (start_date + timedelta(days=365)).strftime('%Y')
+                        kosis_url_obj.endPrdDe = kosis_url_obj.startPrdDe
                     elif kosis_url_obj.prdSe == PRDSEENUM.MONTH.value:
                         kosis_url_obj.startPrdDe = start_date.strftime('%Y%m')
-                        kosis_url_obj.endPrdDe = (start_date + timedelta(days=30)).strftime('%Y%m')
+                        kosis_url_obj.endPrdDe = kosis_url_obj.startPrdDe
                     elif kosis_url_obj.prdSe == PRDSEENUM.QUARTER.value:
                         kosis_url_obj.startPrdDe = start_date.strftime('%Y%m')
-                        kosis_url_obj.endPrdDe = (start_date + timedelta(days=120)).strftime('%Y%m')
+                        kosis_url_obj.endPrdDe = kosis_url_obj.startPrdDe
                     else:
                         assert False, "prdSe is not valid"
                     request_url = kosis_url_obj.get_full_url()
@@ -105,7 +98,7 @@ class KosisOpenApiDag:
                     obj_unit_params : List[str] = open_api_helper_obj.get_multi_unit_param(url_obj.objL8)
                     response : dict = open_api_helper_obj.get_appeneded_response_bymulti_unit_param(url_obj, obj_unit_params)
                 else:
-                    response = open_api_helper_obj.get_response(url_obj.get_full_url())
+                    response = open_api_helper_obj.get_response(url_obj.get_full_url(), dag_config_param['src_nm'])
                 cur_task_instance_xcom_dto = OpenApiXcomDto(response_json=response, next_request_url=url_obj.get_full_url())
                 prdSe = url_obj.prdSe
                 if prdSe == PRDSEENUM.YEAR.value:
@@ -131,7 +124,7 @@ class KosisOpenApiDag:
                     url_obj.endPrdDe = end_prd_de.strftime('%Y%m')
                 else:
                     assert False, "prdSe is not valid"
-                cur_task_instance_xcom_dto.request_url = url_obj.get_full_url()
+                cur_task_instance_xcom_dto.next_request_url = url_obj.get_full_url()
                 cur_task_instance.xcom_push(key=f"{dag_id}_{cur_task_instance.task_id}_{cur_task_instance.run_id}", value=cur_task_instance_xcom_dto.to_dict())
             @task
             def openapi_csv_save():            
@@ -145,17 +138,17 @@ class KosisOpenApiDag:
                 csv_manager : CsvManager = CsvManager()         
                 dag_dir_path : str = dag_config_param['dir_path']
                 dag_dir_path = dag_dir_path[1:dag_dir_path.__len__()]
-                request_url_obj = UrlObjectFactory.createKosisUrl(open_api_request_task_instance_xcom_dto.next_request_url)
-                from_endPrdDe_ptime = None
-                if request_url_obj.prdSe == PRDSEENUM.YEAR.value:
-                    from_endPrdDe_ptime = datetime.strptime(request_url_obj.endPrdDe, '%Y').replace(tzinfo=pytz.UTC)
-                    dag_dir_path = dag_dir_path.replace('TIMESTAMP', from_endPrdDe_ptime.strftime('%Y'))
-                elif request_url_obj.prdSe == PRDSEENUM.MONTH.value:
-                    from_endPrdDe_ptime = datetime.strptime(request_url_obj.endPrdDe, '%Y%m').replace(tzinfo=pytz.UTC)
-                    dag_dir_path = dag_dir_path.replace('TIMESTAMP', from_endPrdDe_ptime.strftime('%Y%m'))
-                elif request_url_obj.prdSe == PRDSEENUM.QUARTER.value:
-                    from_endPrdDe_ptime = datetime.strptime(request_url_obj.endPrdDe, '%Y%m').replace(tzinfo=pytz.UTC)                     
-                    dag_dir_path = dag_dir_path.replace('TIMESTAMP', from_endPrdDe_ptime.strftime('%Y%m'))
+                next_request_url_obj = UrlObjectFactory.createKosisUrl(open_api_request_task_instance_xcom_dto.next_request_url)
+                request_url_endPrd_datetime_obj : datetime = None
+                if next_request_url_obj.prdSe == PRDSEENUM.YEAR.value:
+                    request_url_endPrd_datetime_obj = datetime.strptime(next_request_url_obj.startPrdDe, '%Y').replace(tzinfo=pytz.UTC) - relativedelta(years=1)
+                    dag_dir_path = dag_dir_path.replace('TIMESTAMP', request_url_endPrd_datetime_obj.strftime('%Y'))
+                elif next_request_url_obj.prdSe == PRDSEENUM.MONTH.value:
+                    request_url_endPrd_datetime_obj = datetime.strptime(next_request_url_obj.startPrdDe, '%Y%m').replace(tzinfo=pytz.UTC) - relativedelta(months=1)
+                    dag_dir_path = dag_dir_path.replace('TIMESTAMP', request_url_endPrd_datetime_obj.strftime('%Y%m'))
+                elif next_request_url_obj.prdSe == PRDSEENUM.QUARTER.value:
+                    request_url_endPrd_datetime_obj = datetime.strptime(next_request_url_obj.startPrdDe, '%Y%m').replace(tzinfo=pytz.UTC) - relativedelta(months=3)
+                    dag_dir_path = dag_dir_path.replace('TIMESTAMP', request_url_endPrd_datetime_obj.strftime('%Y%m'))
                 else:
                     assert False, "prdSe is not valid"                
                 csv_manager.save_csv(json_data = open_api_request_task_instance_xcom_dto.response_json, csv_path = dag_dir_path)

@@ -3,6 +3,11 @@ import re
 from urllib.parse import urlparse, urlunparse
 from kosis_url import KosisUrl
 from weatheradministration_url import WeatherAdministrationUrl
+from publicdataportal_anniversary_url import PublicDataPortalAnniversaryUrl
+from publicdataportal_holiday_url import PublicDataPortalHolidayUrl
+from publicdataportal_nationalday_url import PublicDataPortalNationalDayUrl
+from publicdataportal_solarterm_url import PublicDataPortalSolarTermUrl
+from publicdataportal_traditionalday_url import PublicDataPortalTraditionalDayUrl
 class UrlObjectFactory:    
     @staticmethod
     def createKosisUrl(fullUrl : str) -> KosisUrl:
@@ -31,7 +36,7 @@ class UrlObjectFactory:
     def createWeatherAdministrationUrl(fullUrl : str) -> WeatherAdministrationUrl:
         logging.info(f"fullUrl: {fullUrl}")
         baseUrl = UrlObjectFactory.extractWeatherAdministrationBaseUrl(fullUrl)
-        serviceKey = UrlObjectFactory.extractParameter(fullUrl, r'serviceKey=[^&]*')
+        serviceKey = UrlObjectFactory.extractParameter(fullUrl, r'ServiceKey=[^&]*')
         pageNo = UrlObjectFactory.extractParameter(fullUrl, r'pageNo=[^&]*')
         numOfRows = UrlObjectFactory.extractParameter(fullUrl, r'numOfRows=[^&]*')
         dataType = UrlObjectFactory.extractParameter(fullUrl, r'dataType=[^&]*')
@@ -40,7 +45,63 @@ class UrlObjectFactory:
         startDt = UrlObjectFactory.extractParameter(fullUrl, r'startDt=[^&]*')
         endDt = UrlObjectFactory.extractParameter(fullUrl, r'endDt=[^&]*')
         stnIds = UrlObjectFactory.extractParameter(fullUrl, r'stnIds=[^&]*')
+        logging.info(f"baseUrl: {baseUrl}, serviceKey: {serviceKey}, pageNo: {pageNo}, numOfRows: {numOfRows}, dataType: {dataType}, dataCd: {dataCd}, dateCd: {dateCd}, startDt: {startDt}, endDt: {endDt}, stnIds: {stnIds}")
         return WeatherAdministrationUrl(baseUrl, serviceKey, pageNo, numOfRows, dataType, dataCd, dateCd, startDt, endDt, stnIds)
+    @staticmethod
+    def createPublicDataPortalAnniversaryUrl(fullUrl : str) -> PublicDataPortalAnniversaryUrl:
+        logging.info(f"fullUrl: {fullUrl}")
+        baseUrl = UrlObjectFactory.extractPublicDataPortalAnniversaryBaseUrl(fullUrl)
+        serviceKey = UrlObjectFactory.extractParameter(fullUrl, r'serviceKey=[^&]*')
+        pageNo = UrlObjectFactory.extractParameter(fullUrl, r'pageNo=[^&]*')
+        numOfRows = UrlObjectFactory.extractParameter(fullUrl, r'numOfRows=[^&]*')
+        startDt = UrlObjectFactory.extractParameter(fullUrl, r'startDt=[^&]*')
+        endDt = UrlObjectFactory.extractParameter(fullUrl, r'endDt=[^&]*')
+        logging.info(f"baseUrl: {baseUrl}, serviceKey: {serviceKey}, pageNo: {pageNo}, numOfRows: {numOfRows}, startDt: {startDt}, endDt: {endDt}")
+        return PublicDataPortalAnniversaryUrl(baseUrl, serviceKey, pageNo, numOfRows, startDt, endDt)
+    @staticmethod
+    def createPublicDataPortalHolidayUrl(fullUrl : str) -> PublicDataPortalHolidayUrl:
+        logging.info(f"fullUrl: {fullUrl}")
+        baseUrl = UrlObjectFactory.extractPublicDataPortalHolidayBaseUrl(fullUrl)
+        serviceKey = UrlObjectFactory.extractParameter(fullUrl, r'serviceKey=[^&]*')
+        pageNo = UrlObjectFactory.extractParameter(fullUrl, r'pageNo=[^&]*')
+        numOfRows = UrlObjectFactory.extractParameter(fullUrl, r'numOfRows=[^&]*')
+        startDt = UrlObjectFactory.extractParameter(fullUrl, r'startDt=[^&]*')
+        endDt = UrlObjectFactory.extractParameter(fullUrl, r'endDt=[^&]*')
+        logging.info(f"baseUrl: {baseUrl}, serviceKey: {serviceKey}, pageNo: {pageNo}, numOfRows: {numOfRows}, startDt: {startDt}, endDt: {endDt}")
+        return PublicDataPortalHolidayUrl(baseUrl, serviceKey, pageNo, numOfRows, startDt, endDt)
+    @staticmethod
+    def createPublicDataPortalNationalDayUrl(fullUrl : str) -> PublicDataPortalNationalDayUrl:
+        logging.info(f"fullUrl: {fullUrl}")
+        baseUrl = UrlObjectFactory.extractPublicDataPortalNationalDayBaseUrl(fullUrl)
+        serviceKey = UrlObjectFactory.extractParameter(fullUrl, r'serviceKey=[^&]*')
+        pageNo = UrlObjectFactory.extractParameter(fullUrl, r'pageNo=[^&]*')
+        numOfRows = UrlObjectFactory.extractParameter(fullUrl, r'numOfRows=[^&]*')
+        startDt = UrlObjectFactory.extractParameter(fullUrl, r'startDt=[^&]*')
+        endDt = UrlObjectFactory.extractParameter(fullUrl, r'endDt=[^&]*')
+        logging.info(f"baseUrl: {baseUrl}, serviceKey: {serviceKey}, pageNo: {pageNo}, numOfRows: {numOfRows}, startDt: {startDt}, endDt: {endDt}")
+        return PublicDataPortalNationalDayUrl(baseUrl, serviceKey, pageNo, numOfRows, startDt, endDt)
+    @staticmethod
+    def createPublicDataPortalSolarTermUrl(fullUrl : str) -> PublicDataPortalSolarTermUrl:
+        logging.info(f"fullUrl: {fullUrl}")
+        baseUrl = UrlObjectFactory.extractPublicDataPortalSolarTermBaseUrl(fullUrl)
+        serviceKey = UrlObjectFactory.extractParameter(fullUrl, r'serviceKey=[^&]*')
+        pageNo = UrlObjectFactory.extractParameter(fullUrl, r'pageNo=[^&]*')
+        numOfRows = UrlObjectFactory.extractParameter(fullUrl, r'numOfRows=[^&]*')
+        startDt = UrlObjectFactory.extractParameter(fullUrl, r'startDt=[^&]*')
+        endDt = UrlObjectFactory.extractParameter(fullUrl, r'endDt=[^&]*')
+        logging.info(f"baseUrl: {baseUrl}, serviceKey: {serviceKey}, pageNo: {pageNo}, numOfRows: {numOfRows}, startDt: {startDt}, endDt: {endDt}")
+        return PublicDataPortalSolarTermUrl(baseUrl, serviceKey, pageNo, numOfRows, startDt, endDt)
+    @staticmethod
+    def createPublicDataPortalTraditionalDayUrl(fullUrl : str) -> PublicDataPortalTraditionalDayUrl:
+        logging.info(f"fullUrl: {fullUrl}")
+        baseUrl = UrlObjectFactory.extractPublicDataPortalTraditionalDayBaseUrl(fullUrl)
+        serviceKey = UrlObjectFactory.extractParameter(fullUrl, r'serviceKey=[^&]*')
+        pageNo = UrlObjectFactory.extractParameter(fullUrl, r'pageNo=[^&]*')
+        numOfRows = UrlObjectFactory.extractParameter(fullUrl, r'numOfRows=[^&]*')
+        startDt = UrlObjectFactory.extractParameter(fullUrl, r'startDt=[^&]*')
+        endDt = UrlObjectFactory.extractParameter(fullUrl, r'endDt=[^&]*')
+        logging.info(f"baseUrl: {baseUrl}, serviceKey: {serviceKey}, pageNo: {pageNo}, numOfRows: {numOfRows}, startDt: {startDt}, endDt: {endDt}")
+        return PublicDataPortalTraditionalDayUrl(baseUrl, serviceKey, pageNo, numOfRows, startDt, endDt)
     @staticmethod
     def extractKosisBaseUrl(fullUrl : str) -> str:
         parsed_url = urlparse(fullUrl)
@@ -49,9 +110,35 @@ class UrlObjectFactory:
     @staticmethod
     def extractWeatherAdministrationBaseUrl(fullUrl : str) -> str:
         parsed_url = urlparse(fullUrl)
-        base_url = urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, '', 'serviceKey', ''))
+        base_url = urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, '', '', ''))
+        return base_url
+    @staticmethod
+    def extractPublicDataPortalAnniversaryBaseUrl(fullUrl : str) -> str:
+        parsed_url = urlparse(fullUrl)
+        base_url = urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, '', '', ''))
+        return base_url
+    @staticmethod
+    def extractPublicDataPortalHolidayBaseUrl(fullUrl : str) -> str:
+        parsed_url = urlparse(fullUrl)
+        base_url = urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, '', '', ''))
+        return base_url
+    @staticmethod
+    def extractPublicDataPortalNationalDayBaseUrl(fullUrl : str) -> str:
+        parsed_url = urlparse(fullUrl)
+        base_url = urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, '', '', ''))
+        return base_url
+    @staticmethod
+    def extractPublicDataPortalSolarTermBaseUrl(fullUrl : str) -> str:
+        parsed_url = urlparse(fullUrl)
+        base_url = urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, '', '', ''))
+        return base_url
+    @staticmethod
+    def extractPublicDataPortalTraditionalDayBaseUrl(fullUrl : str) -> str:
+        parsed_url = urlparse(fullUrl)
+        base_url = urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, '', '', ''))
         return base_url
     @staticmethod
     def extractParameter(fullUrl, pattern: str) -> str:
+        logging.info(f"fullUrl: {fullUrl}, pattern: {pattern}")
         match = re.search(pattern, fullUrl)
         return match.group(0).split('=')[1] if match else ''
